@@ -23,20 +23,26 @@ var rootCmd = &cobra.Command{
 		}
 		fp := args[0]
 
+		b, err := os.ReadFile(fp)
+		if err != nil {
+			fmt.Printf("Cannot read file %s. Please check file path\n", fp)
+			return
+		}
+
 		if count {
-			getCount(fp)
+			getCount(b)
 		}
 		if lines {
-			getLines(fp)
+			getLines(b)
 		}
 		if words {
-			getWords(fp)
+			getWords(b)
 		}
 
 		if !count && !lines && !words {
-			getCount(fp)
-			getLines(fp)
-			getWords(fp)
+			getCount(b)
+			getLines(b)
+			getWords(b)
 		}
 
 		fmt.Println(fp)
@@ -50,24 +56,12 @@ func init() {
 
 }
 
-func getCount(fp string) {
-	b, err := os.ReadFile(fp)
-	if err != nil {
-		fmt.Printf("Cannot read file %s. Please check file path\n", fp)
-		return
-	}
+func getCount(b []byte) {
 	fmt.Printf("%d ", len(b))
 }
 
-func getLines(fp string) {
-	b, err := os.ReadFile(fp)
-	if err != nil {
-		fmt.Printf("Cannot read file %s. Please check file path\n", fp)
-		return
-	}
-
+func getLines(b []byte) {
 	var line int
-
 	for _, b := range b {
 		if string(b) == "\n" {
 			line++
@@ -76,15 +70,8 @@ func getLines(fp string) {
 	fmt.Printf("%d ", line+1)
 }
 
-func getWords(fp string) {
-	b, err := os.ReadFile(fp)
-	if err != nil {
-		fmt.Printf("Cannot read file %s. Please check file path\n", fp)
-		return
-	}
-
+func getWords(b []byte) {
 	var word int
-
 	for _, b := range b {
 		//TODO: Do not count when the first character is new line or space
 		//TODO: Do not count when there are multiple new line or space in one row
