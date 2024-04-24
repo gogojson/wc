@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -18,15 +19,23 @@ var rootCmd = &cobra.Command{
 	Use:   "cc",
 	Short: "This is a Word Count App",
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) < 1 {
-			panic("Needs to have at lest one argument file path")
-		}
-		fp := args[0]
-
-		b, err := os.ReadFile(fp)
-		if err != nil {
-			fmt.Printf("Cannot read file %s. Please check file path\n", fp)
-			return
+		var b []byte
+		var fp string
+		switch len(args) {
+		case 0:
+			ib, err := io.ReadAll(os.Stdin)
+			if err != nil {
+				panic("failed to read standard in")
+			}
+			b = ib
+		default:
+			var err error
+			fp = args[0]
+			b, err = os.ReadFile(fp)
+			if err != nil {
+				fmt.Printf("Cannot read file %s. Please check file path\n", fp)
+				return
+			}
 		}
 
 		if count {
@@ -45,7 +54,12 @@ var rootCmd = &cobra.Command{
 			getWords(b)
 		}
 
-		fmt.Println(fp)
+		switch fp {
+		case "":
+			fmt.Println()
+		default:
+			fmt.Println(fp)
+		}
 	},
 }
 
@@ -72,17 +86,18 @@ func getLines(b []byte) {
 
 func getWords(b []byte) {
 	var word int
-	for _, b := range b {
-		//TODO: Do not count when the first character is new line or space
-		//TODO: Do not count when there are multiple new line or space in one row
+	var preB string
+	for i, b := range b {
+		if i == 0 {
+			preB = string(b)
+			continue
+		}
 
-		// if word == 0 && strings.Contains("\n., ", string(b)) {
-		// 	fmt.Println("first is bla")
-		// 	continue
-		// }
-		if strings.Contains("\n., ", string(b)) {
+		// Add one new word when the current value contains blank and previous value is not blank
+		if strings.Contains("\n., ", string(b)) && !strings.Contains("\n., ", preB) {
 			word++
 		}
+		preB = string(b)
 	}
 	fmt.Printf("%d ", word+1)
 }
