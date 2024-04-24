@@ -1,10 +1,10 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -38,20 +38,17 @@ var rootCmd = &cobra.Command{
 			}
 		}
 
-		if count {
+		switch {
+		case count:
 			getCount(b)
-		}
-		if lines {
+		case lines:
 			getLines(b)
-		}
-		if words {
+		case words:
 			getWords(b)
-		}
-
-		if !count && !lines && !words {
-			getCount(b)
+		default:
 			getLines(b)
 			getWords(b)
+			getCount(b)
 		}
 
 		switch fp {
@@ -81,25 +78,11 @@ func getLines(b []byte) {
 			line++
 		}
 	}
-	fmt.Printf("%d ", line+1)
+	fmt.Printf("%d ", line)
 }
 
 func getWords(b []byte) {
-	var word int
-	var preB string
-	for i, b := range b {
-		if i == 0 {
-			preB = string(b)
-			continue
-		}
-
-		// Add one new word when the current value contains blank and previous value is not blank
-		if strings.Contains("\n., ", string(b)) && !strings.Contains("\n., ", preB) {
-			word++
-		}
-		preB = string(b)
-	}
-	fmt.Printf("%d ", word+1)
+	fmt.Printf("%d ", len(bytes.Fields(b)))
 }
 
 func Execute() {
